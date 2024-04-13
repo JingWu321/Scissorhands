@@ -1,5 +1,5 @@
 # Scissorhands for Stable Diffusion
-This is the official repository for Scissorhands for diffusion models. The code structure of this project is adapted from the [SalUn](https://github.com/OPTML-Group/Unlearn-Saliency/tree/master/SD) and [SA](https://github.com/clear-nus/selective-amnesia/tree/main/sd) codebase.
+This is the official repository for Scissorhands for diffusion models. The code structure of this project is adapted from the [SalUn](https://github.com/OPTML-Group/Unlearn-Saliency/tree/master/SD), [SA](https://github.com/clear-nus/selective-amnesia/tree/main/sd) and [ESD](https://github.com/rohitgandikota/erasing/tree/main) codebase.
 
 # Requirements
 Install the requirements using a `conda` environment:
