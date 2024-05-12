@@ -95,18 +95,14 @@ def snip(model, dataloader, sparsity, prune_num, device):
         # get mask to prune the weights
         for j, param in enumerate(mask_.parameters()):
             indx = (abs_saliences[j] > threshold) # prune for forget data
+            # print('indx', indx.sum())
             param.data[indx] = 0
 
         # update the weights of the original network with the mask
         for (n, param), (m_param) in zip(model.model.diffusion_model.named_parameters(), mask_.parameters()):
-            if ("attn2" in n):
-            # if (n.startswith("out.")) or ("attn2" in n) or ("time_embed" in n):
-            #     pass
-            # else:
-                # print('snip', n, m_param.data.sum())
+            if ("attn1" in n):
                 mask = torch.empty(param.data.shape, device=device)
                 if ('weight' in n):
-                    # re_init_param = torch.nn.init.kaiming_uniform_(mask, a=math.sqrt(5))
                     re_init_param = trunc_normal_(mask, std=.02)
                 elif ('bias' in n):
                     re_init_param = torch.nn.init.zeros_(mask)
@@ -148,7 +144,7 @@ def SHs(classes,
             if name.startswith("out.") or "attn2" in name or "time_embed" in name:
                 pass
             else:
-                print(name)
+                # print(name)
                 parameters.append(param)
         # train only self attention layers
         if train_method == "selfattn":
@@ -158,11 +154,11 @@ def SHs(classes,
         # train only x attention layers
         if train_method == "xattn":
             if "attn2" in name:
-                print(name)
+                # print(name)
                 parameters.append(param)
         # train all layers
         if train_method == "full":
-            print(name)
+            # print(name)
             parameters.append(param)
         # train all layers except time embed layers
         if train_method == "notime":
@@ -183,9 +179,7 @@ def SHs(classes,
     # prune via snip
     model = snip(model, forget_dl, sparsity, prune_num, device)
     # get the gradient w.r.t the proxy_model
-    # condition = lambda n: ('attn2' in n) and ('output_blocks.11' in n) and ('output_blocks.10' in n) and ('output_blocks.9' in n)
     condition = lambda n: ('attn2' in n)
-    # condition = lambda n: (n.startswith("out.") or "attn2" in n or "time_embed" in n)
     if project:
         proxy_model = copy.deepcopy(model).to(device)
         proxy_model.eval()
@@ -215,9 +209,9 @@ def SHs(classes,
 
     if mask_path:
         mask = torch.load(mask_path)
-        name = f"compvis-nsfw-SHs-mask-method_{train_method}-lr_{lr}_S{sparsity}_P{prune_num}_M{memory_num}_lam_{lam}_E{epochs}"
+        name = f"compvis-nsfw-SHs2-mask-method_{train_method}-lr_{lr}_S{sparsity}_P{prune_num}_M{memory_num}_lam_{lam}_E{epochs}"
     else:
-        name = f"compvis-nsfw-SHs-method_{train_method}-lr_{lr}_S{sparsity}_P{prune_num}_M{memory_num}_lam_{lam}_E{epochs}"
+        name = f"compvis-nsfw-SHs2-method_{train_method}-lr_{lr}_S{sparsity}_P{prune_num}_M{memory_num}_lam_{lam}_E{epochs}"
 
     # NSFW Removal
     word_wear = "a photo of a person wearing clothes"
@@ -258,7 +252,7 @@ def SHs(classes,
                 loss = loss_r + lam * loss_u
                 loss.backward()
                 losses.append(loss.item() / batch_size)
-                losses_e.update(loss.item())
+                # losses_e.update(loss.item())
 
                 if project and (i % 10 == 0):
                     # get the gradient w.r.t the pruned model
@@ -295,19 +289,19 @@ def SHs(classes,
                 torch.cuda.empty_cache()
                 gc.collect()
 
-                if (step+1) % 55 == 0:
-                #     print(f"step: {step}, loss: {loss:.4f}, loss_u: {loss_u:.4f}, loss_r: {loss_r:.4f}, losses_e: {losses_e.avg:.4f}")
+                if (step+1) % 50 == 0:
+                    print(f"step: {step}, loss: {loss:.4f}, loss_u: {loss_u:.4f}, loss_r: {loss_r:.4f}, lam*loss_u: {lam * loss_u:.4f}")
                     save_history(losses, name, word_print)
-                #     model.eval()
-                #     save_model(model, name, step, save_compvis=True, save_diffusers=True, compvis_config_file=config_path, diffusers_config_file=diffusers_config_path)
+                    model.eval()
+                    save_model(model, name, step, save_compvis=True, save_diffusers=True, compvis_config_file=config_path, diffusers_config_file=diffusers_config_path)
 
                 time.set_description("Epoch %i" % epoch)
                 time.set_postfix(loss=loss.item() / batch_size)
                 sleep(0.1)
                 time.update(1)
 
-        model.eval()
-        save_model(model, name, epoch, save_compvis=True, save_diffusers=True, compvis_config_file=config_path, diffusers_config_file=diffusers_config_path)
+        # model.eval()
+        # save_model(model, name, epoch, save_compvis=True, save_diffusers=True, compvis_config_file=config_path, diffusers_config_file=diffusers_config_path)
 
     model.eval()
     save_model(
