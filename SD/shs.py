@@ -95,15 +95,16 @@ def snip(model, dataloader, sparsity, prune_num, device):
         # get mask to prune the weights
         for j, param in enumerate(mask_.parameters()):
             indx = (abs_saliences[j] > threshold) # prune for forget data
-            # print('indx', indx.sum())
             param.data[indx] = 0
 
         # update the weights of the original network with the mask
         for (n, param), (m_param) in zip(model.model.diffusion_model.named_parameters(), mask_.parameters()):
-            if ("attn1" in n):
+            if ("attn1" in n) and ("output_blocks.4." in n or "output_blocks.7." in n):
+                print((m_param.data == 0).sum())
                 mask = torch.empty(param.data.shape, device=device)
                 if ('weight' in n):
-                    re_init_param = trunc_normal_(mask, std=.02)
+                    re_init_param = torch.nn.init.kaiming_uniform_(mask, a=0, nonlinearity='relu')
+                    # re_init_param = trunc_normal_(mask, std=.02)
                 elif ('bias' in n):
                     re_init_param = torch.nn.init.zeros_(mask)
                 param.data = param.data * m_param.data + re_init_param.data * (1 - m_param.data)
@@ -178,40 +179,17 @@ def SHs(classes,
 
     # prune via snip
     model = snip(model, forget_dl, sparsity, prune_num, device)
-    # get the gradient w.r.t the proxy_model
-    condition = lambda n: ('attn2' in n)
-    if project:
-        proxy_model = copy.deepcopy(model).to(device)
-        proxy_model.eval()
-        g_o = []
-        for ii in range(memory_num):
-            forget_batch = next(iter(forget_dl))
-            loss = -proxy_model.shared_step(forget_batch)[0]
-            loss.backward()
-            grad_o = []
-            for n, param in proxy_model.model.diffusion_model.named_parameters():
-                if param.grad is not None:
-                    if condition(n):
-                    #     pass
-                    # else:
-                        grad_o.append(param.grad.detach().view(-1))
-            g_o.append(torch.cat(grad_o))
-            torch.cuda.empty_cache()
-            gc.collect()
-        g_o = torch.stack(g_o, dim=1)
-        # print(f'g_o: {g_o.shape}')
 
     # set model to train
     model.train()
     losses = []
-    losses_e = AverageMeter()
     optimizer = torch.optim.Adam(parameters, lr=lr)
 
     if mask_path:
         mask = torch.load(mask_path)
-        name = f"compvis-nsfw-SHs2-mask-method_{train_method}-lr_{lr}_S{sparsity}_P{prune_num}_M{memory_num}_lam_{lam}_E{epochs}"
+        name = f"compvis-nsfw-SHs-mask-method_{train_method}-lr_{lr}_S{sparsity}_P{prune_num}_M{memory_num}_lam_{lam}_E{epochs}"
     else:
-        name = f"compvis-nsfw-SHs2-method_{train_method}-lr_{lr}_S{sparsity}_P{prune_num}_M{memory_num}_lam_{lam}_E{epochs}"
+        name = f"compvis-nsfw-SHs-method_{train_method}-lr_{lr}_S{sparsity}_P{prune_num}_M{memory_num}_lam_{lam}_E{epochs}"
 
     # NSFW Removal
     word_wear = "a photo of a person wearing clothes"
@@ -252,44 +230,13 @@ def SHs(classes,
                 loss = loss_r + lam * loss_u
                 loss.backward()
                 losses.append(loss.item() / batch_size)
-                # losses_e.update(loss.item())
-
-                if project and (i % 10 == 0):
-                    # get the gradient w.r.t the pruned model
-                    grad_f = []
-                    for n, param in model.model.diffusion_model.named_parameters():
-                        # if (param.grad is not None) and condition(n):
-                        if param.grad is not None:
-                            if condition(n):
-                            #     pass
-                            # else:
-                                grad_f.append(param.grad)
-                    g_f = torch.cat(list(map(lambda g: g.detach().view(-1), grad_f)))
-                    # print(f'g_f: {g_f.shape}')
-
-                    # compute the dot product of the gradients
-                    dotg = torch.mm(g_f.unsqueeze(0), g_o)
-                    # print(f'dotg: {(dotg < 0).sum()}')
-                    if ((dotg < 0).sum() != 0):
-                        grad_new = project2cone2(g_f.unsqueeze(0), g_o)
-                        # overwrite the gradient
-                        pointer = 0
-                        for n, p in model.model.diffusion_model.named_parameters():
-                            # if (p.grad is not None) and condition(n):
-                            if param.grad is not None:
-                                if condition(n):
-                                #     pass
-                                # else:
-                                    this_grad = grad_new[pointer:pointer + p.numel()].view(p.grad.data.size()).to(device)
-                                    p.grad.data.copy_(this_grad)
-                                    pointer += p.numel()
 
                 optimizer.step()
                 step += 1
                 torch.cuda.empty_cache()
                 gc.collect()
 
-                if (step+1) % 50 == 0:
+                if ((step+1) > 50) and ((step+1) % 10 == 0):
                     print(f"step: {step}, loss: {loss:.4f}, loss_u: {loss_u:.4f}, loss_r: {loss_r:.4f}, lam*loss_u: {lam * loss_u:.4f}")
                     save_history(losses, name, word_print)
                     model.eval()
