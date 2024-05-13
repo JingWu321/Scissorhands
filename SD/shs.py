@@ -362,7 +362,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--prune_num",
         type=int,
-        default=1,
+        default=10,
     )
     parser.add_argument(
         "--lr",
