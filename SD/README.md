@@ -46,3 +46,5 @@ python nudenet_evaluator.py path/to/outdir
 ```
 
 The statistics of the relevant nudity concepts will be printed to screen.
+
+3. Data used to train and models can be found in [Drive](https://drive.google.com/drive/folders/1wJ2IRNL_IutSoOQ-YD9lqem64NpFYE1h).
