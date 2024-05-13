@@ -126,7 +126,6 @@ def snip(model, dataloader, sparsity, prune_num, device, descriptions):
                 mask = torch.empty(param.data.shape, device=device)
                 if ('weight' in n):
                     re_init_param = torch.nn.init.kaiming_uniform_(mask, a=math.sqrt(5))
-                    # re_init_param = trunc_normal_(mask, std=.02)
                 elif ('bias' in n):
                     re_init_param = torch.nn.init.zeros_(mask)
                 param.data = param.data * m_param.data + re_init_param.data * (1 - m_param.data)
@@ -208,9 +207,9 @@ def SHs(class_to_forget,
 
     if mask_path:
         mask = torch.load(mask_path)
-        name = f"compvis-1-SHs-mask-class_{str(class_to_forget)}-method_{train_method}-lr_{lr}_S{sparsity}_P{prune_num}_M{memory_num}_lam_{lam}_E{epochs}"
+        name = f"compvis-SHs-mask-class_{str(class_to_forget)}-method_{train_method}-lr_{lr}_S{sparsity}_P{prune_num}_M{memory_num}_lam_{lam}_E{epochs}"
     else:
-        name = f"compvis-1-SHs-class_{str(class_to_forget)}-method_{train_method}-lr_{lr}_S{sparsity}_P{prune_num}_M{memory_num}_lam_{lam}_E{epochs}"
+        name = f"compvis-SHs-class_{str(class_to_forget)}-method_{train_method}-lr_{lr}_S{sparsity}_P{prune_num}_M{memory_num}_lam_{lam}_E{epochs}"
 
     # TRAINING CODE
     step = 0
