@@ -25,7 +25,7 @@ python eval_scripts/generate-images_nude.py --prompts_path 'prompts/nsfw.csv' --
 2. Forgetting Training with Scissorhands.
 
 ```
-python shs.py --train_method full --sparsity {sparsity} --lam {lam} --memory_num 1 --prune_num 1 --lr 5e-5 --epochs 5 --batch_size 16 --device '0'
+python shs.py --train_method full --sparsity {sparsity} --lam {lam} --lr 1e-5 --epochs 3 --batch_size 16 --device '0'
 ```
 
 
