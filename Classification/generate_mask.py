@@ -96,97 +96,111 @@ def main():
     if args.seed:
         utils.setup_seed(args.seed)
     seed = args.seed
+
     # prepare dataset
-    (
-        model,
-        train_loader_full,
-        val_loader,
-        test_loader,
-        marked_loader,
-    ) = utils.setup_model_dataset(args)
-    model.cuda()
-    # print(model.state_dict())
+    if args.dataset != 'celeba':
+        (
+            model,
+            train_loader_full,
+            val_loader,
+            test_loader,
+            marked_loader,
+        ) = utils.setup_model_dataset(args)
+        model.cuda()
+        # print(model.state_dict())
 
-    def replace_loader_dataset(
-        dataset, batch_size=args.batch_size, seed=1, shuffle=True
-    ):
-        utils.setup_seed(seed)
-        return torch.utils.data.DataLoader(
-            dataset,
-            batch_size=batch_size,
-            num_workers=0,
-            pin_memory=True,
-            shuffle=shuffle,
-        )
+        def replace_loader_dataset(
+            dataset, batch_size=args.batch_size, seed=1, shuffle=True
+        ):
+            utils.setup_seed(seed)
+            return torch.utils.data.DataLoader(
+                dataset,
+                batch_size=batch_size,
+                num_workers=0,
+                pin_memory=True,
+                shuffle=shuffle,
+            )
 
-    forget_dataset = copy.deepcopy(marked_loader.dataset)
-    if args.dataset == "svhn":
-        try:
-            marked = forget_dataset.targets < 0
-        except:
-            marked = forget_dataset.labels < 0
-        forget_dataset.data = forget_dataset.data[marked]
-        try:
-            forget_dataset.targets = -forget_dataset.targets[marked] - 1
-        except:
-            forget_dataset.labels = -forget_dataset.labels[marked] - 1
-        forget_loader = replace_loader_dataset(forget_dataset, seed=seed, shuffle=True)
-        print(len(forget_dataset))
-        retain_dataset = copy.deepcopy(marked_loader.dataset)
-        try:
-            marked = retain_dataset.targets >= 0
-        except:
-            marked = retain_dataset.labels >= 0
-        retain_dataset.data = retain_dataset.data[marked]
-        try:
-            retain_dataset.targets = retain_dataset.targets[marked]
-        except:
-            retain_dataset.labels = retain_dataset.labels[marked]
-        retain_loader = replace_loader_dataset(retain_dataset, seed=seed, shuffle=True)
-        print(len(retain_dataset))
-        assert len(forget_dataset) + len(retain_dataset) == len(
-            train_loader_full.dataset
-        )
-
-    else:
-        try:
-            marked = forget_dataset.targets < 0
+        forget_dataset = copy.deepcopy(marked_loader.dataset)
+        if args.dataset == "svhn":
+            try:
+                marked = forget_dataset.targets < 0
+            except:
+                marked = forget_dataset.labels < 0
             forget_dataset.data = forget_dataset.data[marked]
-            forget_dataset.targets = -forget_dataset.targets[marked] - 1
-            forget_loader = replace_loader_dataset(
-                forget_dataset, seed=seed, shuffle=True
-            )
+            try:
+                forget_dataset.targets = -forget_dataset.targets[marked] - 1
+            except:
+                forget_dataset.labels = -forget_dataset.labels[marked] - 1
+            forget_loader = replace_loader_dataset(forget_dataset, seed=seed, shuffle=True)
             print(len(forget_dataset))
             retain_dataset = copy.deepcopy(marked_loader.dataset)
-            marked = retain_dataset.targets >= 0
+            try:
+                marked = retain_dataset.targets >= 0
+            except:
+                marked = retain_dataset.labels >= 0
             retain_dataset.data = retain_dataset.data[marked]
-            retain_dataset.targets = retain_dataset.targets[marked]
-            retain_loader = replace_loader_dataset(
-                retain_dataset, seed=seed, shuffle=True
-            )
+            try:
+                retain_dataset.targets = retain_dataset.targets[marked]
+            except:
+                retain_dataset.labels = retain_dataset.labels[marked]
+            retain_loader = replace_loader_dataset(retain_dataset, seed=seed, shuffle=True)
             print(len(retain_dataset))
             assert len(forget_dataset) + len(retain_dataset) == len(
                 train_loader_full.dataset
             )
-        except:
-            marked = forget_dataset.targets < 0
-            forget_dataset.imgs = forget_dataset.imgs[marked]
-            forget_dataset.targets = -forget_dataset.targets[marked] - 1
-            forget_loader = replace_loader_dataset(
-                forget_dataset, seed=seed, shuffle=True
-            )
-            print(len(forget_dataset))
-            retain_dataset = copy.deepcopy(marked_loader.dataset)
-            marked = retain_dataset.targets >= 0
-            retain_dataset.imgs = retain_dataset.imgs[marked]
-            retain_dataset.targets = retain_dataset.targets[marked]
-            retain_loader = replace_loader_dataset(
-                retain_dataset, seed=seed, shuffle=True
-            )
-            print(len(retain_dataset))
-            assert len(forget_dataset) + len(retain_dataset) == len(
-                train_loader_full.dataset
-            )
+
+        else:
+            try:
+                marked = forget_dataset.targets < 0
+                forget_dataset.data = forget_dataset.data[marked]
+                forget_dataset.targets = -forget_dataset.targets[marked] - 1
+                forget_loader = replace_loader_dataset(
+                    forget_dataset, seed=seed, shuffle=True
+                )
+                print(len(forget_dataset))
+                retain_dataset = copy.deepcopy(marked_loader.dataset)
+                marked = retain_dataset.targets >= 0
+                retain_dataset.data = retain_dataset.data[marked]
+                retain_dataset.targets = retain_dataset.targets[marked]
+                retain_loader = replace_loader_dataset(
+                    retain_dataset, seed=seed, shuffle=True
+                )
+                print(len(retain_dataset))
+                assert len(forget_dataset) + len(retain_dataset) == len(
+                    train_loader_full.dataset
+                )
+            except:
+                marked = forget_dataset.targets < 0
+                forget_dataset.imgs = forget_dataset.imgs[marked]
+                forget_dataset.targets = -forget_dataset.targets[marked] - 1
+                forget_loader = replace_loader_dataset(
+                    forget_dataset, seed=seed, shuffle=True
+                )
+                print(len(forget_dataset))
+                retain_dataset = copy.deepcopy(marked_loader.dataset)
+                marked = retain_dataset.targets >= 0
+                retain_dataset.imgs = retain_dataset.imgs[marked]
+                retain_dataset.targets = retain_dataset.targets[marked]
+                retain_loader = replace_loader_dataset(
+                    retain_dataset, seed=seed, shuffle=True
+                )
+                print(len(retain_dataset))
+                assert len(forget_dataset) + len(retain_dataset) == len(
+                    train_loader_full.dataset
+                )
+    else:
+        (
+            model,
+            train_loader_full,
+            val_loader,
+            test_loader,
+            forget_loader,
+            retain_loader,
+        ) = utils.setup_model_dataset(args)
+        model.cuda()
+        retain_dataset = retain_loader.dataset
+        forget_dataset = forget_loader.dataset
 
     print(f"number of retain dataset {len(retain_dataset)}")
     print(f"number of forget dataset {len(forget_dataset)}")
