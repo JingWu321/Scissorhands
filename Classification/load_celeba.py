@@ -3,7 +3,7 @@ from torch.utils.data import Dataset
 import os
 from PIL import Image
 
-
+# https://github.com/ndb796/LatentHSJA
 class CelebA(Dataset):
 
     def __init__(self, root, train=True, transform=None, identity=None):
