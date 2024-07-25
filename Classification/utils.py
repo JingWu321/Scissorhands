@@ -81,24 +81,26 @@ class AverageMeter(object):
         self.avg = self.sum / self.count
 
 
-def dataset_convert_to_train(dataset):
-    # train_transform = transforms.Compose(
-    #     [
-    #         transforms.RandomCrop(32, padding=4),
-    #         transforms.RandomHorizontalFlip(),
-    #         transforms.ToTensor(),
-    #     ]
-    # )
-    normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-    train_transform = transforms.Compose(
-        [
-            transforms.Resize((256, 256)),
-            transforms.CenterCrop(224),
-            transforms.RandomHorizontalFlip(),
-            transforms.ToTensor(),
-            normalize,
-        ]
-    )
+def dataset_convert_to_train(dataset, args=None):
+    if (args.dataset == "cifar10") or (args.dataset == "svhn") or (args.dataset == "cifar100"):
+        train_transform = transforms.Compose(
+            [
+                transforms.RandomCrop(32, padding=4),
+                transforms.RandomHorizontalFlip(),
+                transforms.ToTensor(),
+            ]
+        )
+    else:
+        normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+        train_transform = transforms.Compose(
+            [
+                transforms.Resize((256, 256)),
+                transforms.CenterCrop(224),
+                transforms.RandomHorizontalFlip(),
+                transforms.ToTensor(),
+                normalize,
+            ]
+        )
     while hasattr(dataset, "dataset"):
         dataset = dataset.dataset
     dataset.transform = train_transform
@@ -106,23 +108,24 @@ def dataset_convert_to_train(dataset):
 
 
 def dataset_convert_to_test(dataset, args=None):
-    # if args.dataset == "TinyImagenet":
-    #     test_transform = transforms.Compose([])
-    # else:
-    #     test_transform = transforms.Compose(
-    #         [
-    #             transforms.ToTensor(),
-    #         ]
-    #     )
-    normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-    test_transform = transforms.Compose(
-        [
-            transforms.Resize((256, 256)),
-            transforms.CenterCrop(224),
-            transforms.ToTensor(),
-            normalize,
-        ]
-    )
+    if args.dataset == "TinyImagenet":
+        test_transform = transforms.Compose([])
+    elif args.dataset == "celeba":
+        normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+        test_transform = transforms.Compose(
+            [
+                transforms.Resize((256, 256)),
+                transforms.CenterCrop(224),
+                transforms.ToTensor(),
+                normalize,
+            ]
+        )
+    else:
+        test_transform = transforms.Compose(
+            [
+                transforms.ToTensor(),
+            ]
+        )
     while hasattr(dataset, "dataset"):
         dataset = dataset.dataset
     dataset.transform = test_transform
@@ -297,7 +300,7 @@ def setup_model_dataset(args):
             batch_size=args.batch_size, data_dir=args.data, num_workers=args.workers
         )
 
-    elif args.dataset == "celeba": # CelebA Mash HQ
+    elif args.dataset == "celeba": # CelebA Mask HQ
         classes = 307
         normalization = NormalizeByChannelMeanStd(
             mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
