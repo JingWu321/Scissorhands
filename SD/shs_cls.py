@@ -23,7 +23,6 @@ import quadprog
 import copy
 import timm
 import math
-import time
 
 word_wear = "a photo of a person wearing clothes"
 
@@ -124,8 +123,7 @@ def snip(model, dataloader, sparsity, prune_num, device, descriptions):
 
                 mask = torch.empty(param.data.shape, device=device)
                 if ('weight' in n):
-                    re_init_param = torch.nn.init.kaiming_uniform_(mask, a=math.sqrt(5))
-                    # re_init_param = trunc_normal_(mask, std=.02)
+                    re_init_param = trunc_normal_(mask, std=.02)
                 elif ('bias' in n):
                     re_init_param = torch.nn.init.zeros_(mask)
                 param.data = param.data * m_param.data + re_init_param.data * (1 - m_param.data)
@@ -207,14 +205,15 @@ def SHs(class_to_forget,
 
     if mask_path:
         mask = torch.load(mask_path)
-        name = f"compvis-SHs-mask-class_{str(class_to_forget)}-method_{train_method}-lr_{lr}_S{sparsity}_P{prune_num}_M{memory_num}_lam_{lam}_E{epochs}"
+        name = f"compvis-1-SHs-mask-class_{str(class_to_forget)}-method_{train_method}-lr_{lr}_S{sparsity}_P{prune_num}_M{memory_num}_lam_{lam}_E{epochs}"
     else:
-        name = f"compvis-SHs-class_{str(class_to_forget)}-method_{train_method}-lr_{lr}_S{sparsity}_P{prune_num}_M{memory_num}_lam_{lam}_E{epochs}"
+        name = f"compvis-1-SHs-class_{str(class_to_forget)}-method_{train_method}-lr_{lr}_S{sparsity}_P{prune_num}_M{memory_num}_lam_{lam}_E{epochs}"
 
     # TRAINING CODE
     step = 0
+
     for epoch in range(epochs):
-        with tqdm(total=len(forget_dl)) as time_1:
+        with tqdm(total=len(forget_dl)) as time:
             for i, batch in enumerate(forget_dl):
                 model.train()
                 optimizer.zero_grad()
@@ -229,6 +228,7 @@ def SHs(class_to_forget,
                     "txt": remain_prompts,
                 }
                 loss_r = model.shared_step(remain_batch)[0]
+
 
                 forget_batch = {
                     "jpg": forget_images.permute(0, 2, 3, 1),
@@ -247,16 +247,16 @@ def SHs(class_to_forget,
 
                 # if ((step+1) > 50) and ((step+1) % 10 == 0):
                 if (step+1) % 20 == 0:
-                    print(f"step: {step}, loss: {loss:.4f}, loss_r: {loss_r:.4f}, lam*loss_u: {lam * loss_u:.4f}")
+                    print(f"step: {step}, loss: {loss:.4f}, loss_u: {loss_u:.4f}, loss_r: {loss_r:.4f}, lam*loss_u: {lam * loss_u:.4f}")
                     save_history(losses, name, class_to_forget)
                 if step == 79:
                     model.eval()
                     save_model(model, name, step, save_compvis=True, save_diffusers=True, compvis_config_file=config_path, diffusers_config_file=diffusers_config_path)
 
-                time_1.set_description("Epoch %i" % epoch)
-                time_1.set_postfix(loss=loss.item() / batch_size)
+                time.set_description("Epoch %i" % epoch)
+                time.set_postfix(loss=loss.item() / batch_size)
                 sleep(0.1)
-                time_1.update(1)
+                time.update(1)
 
         # model.eval()
         # save_model(model, name, epoch, save_compvis=True, save_diffusers=True, compvis_config_file=config_path, diffusers_config_file=diffusers_config_path)
@@ -471,5 +471,4 @@ if __name__ == "__main__":
         image_size,
         ddim_steps,
     )
-
 
