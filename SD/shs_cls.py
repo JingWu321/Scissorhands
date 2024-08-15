@@ -23,10 +23,9 @@ import quadprog
 import copy
 import timm
 import math
-
+import time
 
 word_wear = "a photo of a person wearing clothes"
-
 
 # projection
 # https://github.com/facebookresearch/GradientEpisodicMemory/blob/master/model/gem.py
@@ -126,6 +125,7 @@ def snip(model, dataloader, sparsity, prune_num, device, descriptions):
                 mask = torch.empty(param.data.shape, device=device)
                 if ('weight' in n):
                     re_init_param = torch.nn.init.kaiming_uniform_(mask, a=math.sqrt(5))
+                    # re_init_param = trunc_normal_(mask, std=.02)
                 elif ('bias' in n):
                     re_init_param = torch.nn.init.zeros_(mask)
                 param.data = param.data * m_param.data + re_init_param.data * (1 - m_param.data)
@@ -214,7 +214,7 @@ def SHs(class_to_forget,
     # TRAINING CODE
     step = 0
     for epoch in range(epochs):
-        with tqdm(total=len(forget_dl)) as time:
+        with tqdm(total=len(forget_dl)) as time_1:
             for i, batch in enumerate(forget_dl):
                 model.train()
                 optimizer.zero_grad()
@@ -245,16 +245,18 @@ def SHs(class_to_forget,
                 torch.cuda.empty_cache()
                 gc.collect()
 
-                if ((step+1) > 50) and ((step+1) % 2 == 0):
-                    print(f"step: {step}, loss: {loss:.4f}, loss_u: {loss_u:.4f}, loss_r: {loss_r:.4f}, lam*loss_u: {lam * loss_u:.4f}")
+                # if ((step+1) > 50) and ((step+1) % 10 == 0):
+                if (step+1) % 20 == 0:
+                    print(f"step: {step}, loss: {loss:.4f}, loss_r: {loss_r:.4f}, lam*loss_u: {lam * loss_u:.4f}")
                     save_history(losses, name, class_to_forget)
+                if step == 79:
                     model.eval()
                     save_model(model, name, step, save_compvis=True, save_diffusers=True, compvis_config_file=config_path, diffusers_config_file=diffusers_config_path)
 
-                time.set_description("Epoch %i" % epoch)
-                time.set_postfix(loss=loss.item() / batch_size)
+                time_1.set_description("Epoch %i" % epoch)
+                time_1.set_postfix(loss=loss.item() / batch_size)
                 sleep(0.1)
-                time.update(1)
+                time_1.update(1)
 
         # model.eval()
         # save_model(model, name, epoch, save_compvis=True, save_diffusers=True, compvis_config_file=config_path, diffusers_config_file=diffusers_config_path)
@@ -302,7 +304,7 @@ def save_model(
     folder_path = f"models/{name}"
     os.makedirs(folder_path, exist_ok=True)
     if num is not None:
-        path = f"{folder_path}/{name}-epoch_{num}.pt"
+        path = f"{folder_path}/{name}-step_{num}.pt"
     else:
         path = f"{folder_path}/{name}.pt"
     if save_compvis:
@@ -371,7 +373,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--prune_num",
         type=int,
-        default=10,
+        default=1,
     )
     parser.add_argument(
         "--lr",
