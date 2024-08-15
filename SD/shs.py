@@ -236,9 +236,10 @@ def SHs(classes,
                 torch.cuda.empty_cache()
                 gc.collect()
 
-                if ((step+1) > 50) and ((step+1) % 10 == 0):
+                if (step+1) % 10 == 0:
                     print(f"step: {step}, loss: {loss:.4f}, loss_u: {loss_u:.4f}, loss_r: {loss_r:.4f}, lam*loss_u: {lam * loss_u:.4f}")
                     save_history(losses, name, word_print)
+                if (step == 89) or (step == 99) or (step == 109):
                     model.eval()
                     save_model(model, name, step, save_compvis=True, save_diffusers=True, compvis_config_file=config_path, diffusers_config_file=diffusers_config_path)
 
