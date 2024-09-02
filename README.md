@@ -2,6 +2,7 @@
 
 # Scissorhands: Scrub Data Influence via Connection Sensitivity in Networks
 
+![Venue:ECCV 2024](https://img.shields.io/badge/Venue-ECCV%202024%20-blue)
 [![preprint](https://img.shields.io/static/v1?label=arXiv&message=2301.11308&color=B31B1B)](https://arxiv.org/abs/2401.06187)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
