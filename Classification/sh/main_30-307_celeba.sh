@@ -27,11 +27,16 @@
 
 # # l1_sparse
 # python -u main_forget.py --seed=2 --gpu 1 --data '/home/jing/datasets/CelebAMaskHQ/CelebA_HQ_facial_identity_dataset' --dataset 'celeba' --save_dir './_results/celeba/seed2/l1Sparse' --mask './_results/celeba/raw/rawcheckpoint.pth.tar' --unlearn FT_prune  --alpha 1e-4 --unlearn_lr 1e-3 --unlearn_epochs 5 --arch "resnet34" --input_size 224 --batch_size 8 --num_classes 307
+# python -u main_forget.py --seed=2 --gpu 0 --data '/home/jing/dataset/CelebAMaskHQ/CelebA_HQ_facial_identity_dataset' --dataset 'celeba' --save_dir './_results/celeba/seed2/l1Sparse' --mask './_results/celeba/raw/rawcheckpoint.pth.tar' --unlearn FT_prune --alpha 1e-3 --unlearn_lr 1e-3 --unlearn_epochs 3 --arch "resnet34" --input_size 224 --batch_size 8 --num_classes 307
 
 
 # # SalUn
 # python generate_mask.py --seed=2 --gpu 1 --data '/home/jing/datasets/CelebAMaskHQ/CelebA_HQ_facial_identity_dataset' --dataset 'celeba' --save './_results/celeba/seed2/SalUn/mask' --mask './_results/celeba/raw/rawcheckpoint.pth.tar'  --unlearn_epochs 1 --arch "resnet34" --input_size 224 --batch_size 8 --num_classes 307
 # python -u main_random.py --seed=2 --gpu 1 --data '/home/jing/datasets/CelebAMaskHQ/CelebA_HQ_facial_identity_dataset' --dataset 'celeba' --save_dir './_results/celeba/seed2/SalUn' --mask './_results/celeba/raw/rawcheckpoint.pth.tar' --unlearn RL --unlearn_epochs 5 --unlearn_lr 5e-3  --path './_results/celeba/seed2/SalUn/mask/with_0.2.pt' --arch "resnet34" --input_size 224 --batch_size 8 --num_classes 307
+
+# This one is better
+# # python generate_mask.py --seed=2 --gpu 0 --data '/home/jing/dataset/CelebAMaskHQ/CelebA_HQ_facial_identity_dataset' --dataset 'celeba' --save './_results/celeba/seed2/SalUn/mask' --mask './_results/celeba/raw/rawcheckpoint.pth.tar'  --unlearn_epochs 1 --arch "resnet34" --input_size 224 --batch_size 8 --num_classes 307
+# python -u main_random.py --seed=2 --gpu 0 --data '/home/jing/dataset/CelebAMaskHQ/CelebA_HQ_facial_identity_dataset' --dataset 'celeba' --save_dir './_results/celeba/seed2/SalUn' --mask './_results/celeba/raw/rawcheckpoint.pth.tar' --unlearn RL --unlearn_epochs 5 --unlearn_lr 3e-3  --path './_results/celeba/seed2/SalUn/mask/with_0.5.pt' --arch "resnet34" --input_size 224 --batch_size 8 --num_classes 307
 
 
 # # SHs
