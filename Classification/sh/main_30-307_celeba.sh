@@ -35,4 +35,4 @@
 
 
 # # SHs
-python -u main_forget.py --seed=2 --gpu 1 --data '/home/jing/datasets/CelebAMaskHQ/CelebA_HQ_facial_identity_dataset' --dataset 'celeba' --save_dir './_results/celeba/seed2/SHs/lr2e-4_s995_lam0.3_E5P1M1' --mask './_results/celeba/raw/rawcheckpoint.pth.tar' --print_freq=10 --unlearn SHs  --unlearn_epochs 5 --unlearn_lr 2e-4 --sparsity 0.995 --lam 0.3 --project --memory_num 1 --prune_num 1 --arch "resnet34" --input_size 224 --batch_size 8 --num_classes 307
+# python -u main_forget.py --seed=2 --gpu 1 --data '/home/jing/datasets/CelebAMaskHQ/CelebA_HQ_facial_identity_dataset' --dataset 'celeba' --save_dir './_results/celeba/seed2/SHs/lr2e-4_s995_lam0.3_E5P1M1' --mask './_results/celeba/raw/rawcheckpoint.pth.tar' --print_freq=10 --unlearn SHs  --unlearn_epochs 5 --unlearn_lr 2e-4 --sparsity 0.995 --lam 0.3 --project --memory_num 1 --prune_num 1 --arch "resnet34" --input_size 224 --batch_size 8 --num_classes 307
