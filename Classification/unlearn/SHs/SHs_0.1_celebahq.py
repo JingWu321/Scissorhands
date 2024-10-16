@@ -122,7 +122,8 @@ def snip(net, dataloader, sparsity, prune_num, device):
 
         # update the weights of the original network with the mask
         for (name, param), (m_param) in zip(net.named_parameters(), mask_.parameters()):
-            if ('bn' not in name) and (('layer3' in name) or ('layer4' in name) or ('fc' in name)):
+            # if ('bn' not in name) and (('layer3' in name) or ('layer4' in name) or ('fc' in name)):
+            if ('bn' not in name) and (('layer4' in name) or ('fc' in name)):
                 if ('weight' in name):
                     re_init_param = re_init_weights(param.data.shape, device)
                 elif ('bias' in name):
@@ -139,7 +140,8 @@ def SHs(data_loaders, model, criterion, optimizer, epoch, args, mask=None):
     forget_loader = data_loaders["forget"]
     retain_loader = data_loaders["retain"]
     device = torch.device(f"cuda:{int(args.gpu)}")
-    condition = lambda n: ('layer3' in n or 'layer4' in n or 'fc' in n)
+    # condition = lambda n: ('layer3' in n or 'layer4' in n or 'fc' in n)
+    condition = lambda n: ('layer4' in n or 'fc' in n)
 
     # prune via snip
     if epoch == 0:
